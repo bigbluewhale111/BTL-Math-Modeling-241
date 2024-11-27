@@ -5,7 +5,7 @@ import sys
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 
-from algo import exact
+from algo import exact, heuristic
 
 least_space = lambda rectangles: sum([rect[0] * rect[1] for rect in rectangles])
 
@@ -36,8 +36,8 @@ def plot_result(result, rectangles, sheets, output_filename='output.png'):
 
 
 if __name__ == "__main__":
-    if len(sys.argv) != 2:
-        print("Usage: python testCSP_exact_pulp.py <testcase_folder>")
+    if len(sys.argv) != 3:
+        print("Usage: python testCSP_exact_pulp.py <testcase_folder> <algo>")
         exit(1)
     testcase_folder = sys.argv[1]
     if not os.path.exists(testcase_folder):
@@ -54,7 +54,14 @@ if __name__ == "__main__":
     if testcases is None:
         print("No test cases found.")
         exit(1)
-    
+    isExact = None
+    if sys.argv[2] == 'exact':
+        isExact = True
+    elif sys.argv[2] == 'heuristic':
+        isExact = False
+    else:
+        print("Invalid algorithm.")
+        exit(1)
     testcaseCount = len(testcases)
     for i in range(testcaseCount):
         items, stocks = testcases[i]['items'], testcases[i]['stocks']
@@ -62,14 +69,17 @@ if __name__ == "__main__":
         print(f"Items has {items_size} elements: {items}")
         print(f"Stocks has {stocks_size} elements: {stocks}")
         print(f"Variable count: {testcases[i]['variable_count']}")
-        result, fill_percentage, solutionTime = exact.exact_2d_csp(items, stocks, timeout=1000, threads=8, verbose=True)
+        if isExact:
+            result, fill_percentage, solutionTime = exact.exact_2d_csp(items, stocks, timeout=1000, threads=8, verbose=True)
+        else:
+            result, fill_percentage, solutionTime = heuristic.heuristic_2d_csp(items, stocks, verbose=True)
         if result is None:
             print("No solution found.")
         else:
             print(result)
             print(f"Fill percentage: {fill_percentage}")
             print(f"Solution time: {solutionTime}")
-            plot_result(result, items, stocks, f"output_{i}.png")
+            plot_result(result, items, stocks, f"output_{'exact' if isExact else 'heuristic'}_{i}.png")
         # Append results to JSON file
         output_data = {
             'items_size': items_size,
@@ -77,6 +87,6 @@ if __name__ == "__main__":
             'fill_percentage': fill_percentage,
             'solution_time': solutionTime
         }
-        with open('results.json', 'a') as json_file:
+        with open(f"results_{'exact' if isExact else 'heuristic'}.json", 'a') as json_file:
             json.dump(output_data, json_file)
             json_file.write('\n')

@@ -112,14 +112,14 @@ def exact_2d_csp(rectangles, sheets, timeout=600, threads=4, verbose=False):
         return None, None, None
     else:
         # Extract results
-        result = []
+        result = {}
         for i in range(n):
             for k in range(m):
                 if z[i, k].value() > 0.5:
-                    result.append({
+                    result[i] = {
                         'sheet': k,
                         'x': x[i, k].varValue,
                         'y': y[i, k].varValue,
                         'rotated': s[i].varValue
-                    })
+                    }
         return result, least_space(rectangles) / Sheets_area.varValue, prob.solutionTime
