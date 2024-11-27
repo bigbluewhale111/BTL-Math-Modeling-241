@@ -64,6 +64,9 @@ if __name__ == "__main__":
     else:
         print("Invalid algorithm.")
         exit(1)
+    if not os.path.exists(f'{'exact' if isExact else 'heuristic'}_output'):
+        os.makedirs(f'{'exact' if isExact else 'heuristic'}_output')
+    os.chdir(f'{'exact' if isExact else 'heuristic'}_output')
     testcaseCount = len(testcases)
     for i in range(testcaseCount):
         items, stocks = testcases[i]['items'], testcases[i]['stocks']
@@ -72,7 +75,7 @@ if __name__ == "__main__":
         print(f"Stocks has {stocks_size} elements: {stocks}")
         print(f"Variable count: {testcases[i]['variable_count']}")
         if isExact:
-            result, fill_percentage, solutionTime = exact.exact_2d_csp(items, stocks, timeout=1000, threads=8, verbose=True)
+            result, fill_percentage, solutionTime = exact.exact_2d_csp(items, stocks, timeout=300, threads=28, verbose=True)
         else:
             result, fill_percentage, solutionTime = heuristic.heuristic_2d_csp(items, stocks, verbose=True)
         if result is None:
