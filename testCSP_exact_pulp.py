@@ -40,9 +40,11 @@ if __name__ == "__main__":
         print("Usage: python testCSP_exact_pulp.py <testcase_folder> <algo>")
         exit(1)
     testcase_folder = sys.argv[1]
+    testcase_folder = os.path.join('testcase', testcase_folder)
     if not os.path.exists(testcase_folder):
         print("Test case folder not found.")
         exit
+    
     os.chdir(testcase_folder)
     if not os.path.exists('testcase.json'):
         print("Test case file not found.")

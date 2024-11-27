@@ -51,7 +51,7 @@ if __name__ == "__main__":
             'variable_count': variableCount(items_size, stocks_size)
         }
         testcases.append(output_data)
-    if not os.path.exists(f'testcase_{variable_count}'):
-        os.makedirs(f'testcase_{variable_count}')
-    with open(f'testcase_{variable_count}/testcase.json', 'w') as json_file:
+    if not os.path.exists(f'testcase/testcase_{variable_count}'):
+        os.makedirs(f'testcase/testcase_{variable_count}')
+    with open(f'testcase/testcase_{variable_count}/testcase.json', 'w') as json_file:
         json.dump(testcases, json_file)
