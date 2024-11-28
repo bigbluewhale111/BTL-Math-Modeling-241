@@ -5,4 +5,4 @@ BTL math modeling 241
 
 Test with 50 test cases:
 
-Using Ryzen 9 7950x 16 cores 32 threads, 64GB RAM: Exact algorithm using Coin or CBC solver in PULP with 28 threads, time out 300s
+Using Ryzen 9 7950x 16 cores 32 threads, 64GB RAM: Exact algorithm using Coin or CBC solver in PULP with 32 threads, time out 1200s
