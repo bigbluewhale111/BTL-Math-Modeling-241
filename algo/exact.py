@@ -4,8 +4,7 @@ from pulp import (
     LpVariable,
     lpSum,
     LpStatus,
-    PULP_CBC_CMD,
-    GLPK_CMD
+    COPT_CMD,
 )
 
 least_space = lambda rectangles: sum([rect[0] * rect[1] for rect in rectangles])
@@ -103,7 +102,7 @@ def exact_2d_csp(rectangles, sheets, timeout=600, threads=4, verbose=False):
                 )
 
     # Solve the problem
-    prob.solve(PULP_CBC_CMD(msg=verbose, timeLimit=timeout, threads=threads))
+    prob.solve(COPT_CMD(msg=verbose, timeLimit=timeout, threads=threads))
     # Print solver status
     print("Status:", LpStatus[prob.status])
 
