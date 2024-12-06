@@ -81,7 +81,7 @@ if __name__ == "__main__":
             print(result)
             print(f"Fill percentage: {fill_percentage}")
             print(f"Solution time: {solutionTime}")
-            plot_result(result, items, stocks, f"output_{'exact' if isExact else 'heuristic'}_{i}.png")
+            # plot_result(result, items, stocks, f"output_{'exact' if isExact else 'heuristic'}_{i}.png")
         # Append results to JSON file
         output_data = {
             'items_size': items_size,

@@ -17,11 +17,14 @@ def generate_test_size(variableNum=10000, epsilon=0.1):
             break
     return items_size, stocks_size
 
-def generate_test_case(items_size, stocks_size, minw, maxw, minh, maxh):
+def generate_test_case(items_size, stocks_size, minw, maxw, minh, maxh, fixed=False):
     while True:
         items = [(random.randint(1, minw + 1), random.randint(1, minh + 1)) for _ in range(items_size)]
         total_items_area = sum(w * h for w, h in items)
-        stocks = [(random.randint(minw, maxw + 1), random.randint(minh, maxh + 1)) for _ in range(stocks_size)]
+        if fixed:
+            stocks = [(random.randint(minw, maxw + 1), random.randint(minh, maxh + 1)) for _ in range(stocks_size)]
+        else:
+            stocks = [(random.randint(minw, maxw + 1), random.randint(minh, maxh + 1))] * stocks_size
         total_stocks_area = sum(w * h for w, h in stocks)
         if total_items_area < total_stocks_area:
             return items, stocks
