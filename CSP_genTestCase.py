@@ -31,8 +31,8 @@ def generate_test_case(items_size, stocks_size, minw, maxw, minh, maxh, fixed=Fa
 
 if __name__ == "__main__":
     # generate test case and put to json file the items and stocks
-    if len(sys.argv) != 3:
-        print("Usage: python CSP_genTestCase.py <variable_count> <test_case_count>")
+    if len(sys.argv) != 4:
+        print("Usage: python CSP_genTestCase.py <mode> <variable_count> <test_case_count>")
         exit(1)
     variable_count = int(sys.argv[1])
     testcases = []
