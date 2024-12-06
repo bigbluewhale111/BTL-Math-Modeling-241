@@ -7,7 +7,7 @@ import os
 least_space = lambda rectangles: sum([rect[0] * rect[1] for rect in rectangles])
 variableCount = lambda n, m: 3*n*m + n + m + n*(n-1)*m*2 + 1
 
-def generate_test_size(variableNum=10000, epsilon=0.1):
+def generate_test_size(variableNum=10000, epsilon=0.1, fixed=False):
     max_stocks_size = math.ceil((variableNum / 18) ** (1./3))
     max_items_size = max_stocks_size * 3
     while True:
@@ -15,6 +15,8 @@ def generate_test_size(variableNum=10000, epsilon=0.1):
         stocks_size = random.randint(1, max_stocks_size)
         if abs(variableCount(items_size, stocks_size) - variableNum) < epsilon * variableNum and items_size >= stocks_size:
             break
+    if fixed:
+        stocks_size = stocks_size + 1
     return items_size, stocks_size
 
 def generate_test_case(items_size, stocks_size, minw, maxw, minh, maxh, fixed=False):
@@ -22,9 +24,9 @@ def generate_test_case(items_size, stocks_size, minw, maxw, minh, maxh, fixed=Fa
         items = [(random.randint(1, minw + 1), random.randint(1, minh + 1)) for _ in range(items_size)]
         total_items_area = sum(w * h for w, h in items)
         if fixed:
-            stocks = [(random.randint(minw, maxw + 1), random.randint(minh, maxh + 1)) for _ in range(stocks_size)]
-        else:
             stocks = [(random.randint(minw, maxw + 1), random.randint(minh, maxh + 1))] * stocks_size
+        else:
+            stocks = [(random.randint(minw, maxw + 1), random.randint(minh, maxh + 1)) for _ in range(stocks_size)]
         total_stocks_area = sum(w * h for w, h in stocks)
         if total_items_area < total_stocks_area:
             return items, stocks
@@ -32,16 +34,17 @@ def generate_test_case(items_size, stocks_size, minw, maxw, minh, maxh, fixed=Fa
 if __name__ == "__main__":
     # generate test case and put to json file the items and stocks
     if len(sys.argv) != 4:
-        print("Usage: python CSP_genTestCase.py <mode> <variable_count> <test_case_count>")
+        print("Usage: python CSP_genTestCase.py <variable_count> <test_case_count> <mode>")
         exit(1)
     variable_count = int(sys.argv[1])
     testcases = []
     test_case_count = int(sys.argv[2])
+    mode = sys.argv[3] == 'fixed'
     for i in range(test_case_count):
         print(f"================Test case {i}================")
-        items_size, stocks_size = generate_test_size(variable_count)
+        items_size, stocks_size = generate_test_size(variable_count, 0.1, mode)
         while True:
-            items, stocks = generate_test_case(items_size, stocks_size, 50, 100, 50, 100)
+            items, stocks = generate_test_case(items_size, stocks_size, 50, 100, 50, 100, mode)
             if least_space(items) <= least_space(stocks):
                 break
         print(f"Items has {items_size} elements: {items}")
@@ -54,7 +57,7 @@ if __name__ == "__main__":
             'variable_count': variableCount(items_size, stocks_size)
         }
         testcases.append(output_data)
-    if not os.path.exists(f'testcase/testcase_{variable_count}'):
-        os.makedirs(f'testcase/testcase_{variable_count}')
-    with open(f'testcase/testcase_{variable_count}/testcase.json', 'w') as json_file:
+    if not os.path.exists(f'testcase/testcase{"_fixed" if mode else ""}_{variable_count}'):
+        os.makedirs(f'testcase/testcase{"_fixed" if mode else ""}_{variable_count}')
+    with open(f'testcase/testcase{"_fixed" if mode else ""}_{variable_count}/testcase.json', 'w') as json_file:
         json.dump(testcases, json_file)

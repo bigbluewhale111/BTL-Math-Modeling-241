@@ -96,9 +96,9 @@ if __name__ == "__main__":
     else:
         print("Invalid algorithm.")
         exit(1)
-    if not os.path.exists(f'{'exact' if isExact else 'heuristic'}_output'):
-        os.makedirs(f'{'exact' if isExact else 'heuristic'}_output')
-    os.chdir(f'{'exact' if isExact else 'heuristic'}_output')
+    if not os.path.exists(f'{"exact" if isExact else "heuristic"}_output'):
+        os.makedirs(f'{"exact" if isExact else "heuristic"}_output')
+    os.chdir(f'{"exact" if isExact else "heuristic"}_output')
     testcaseCount = len(testcases)
     for i in range(testcaseCount):
         items, stocks = testcases[i]['items'], testcases[i]['stocks']
@@ -116,7 +116,7 @@ if __name__ == "__main__":
             print(result)
             print(f"Fill percentage: {fill_percentage}")
             print(f"Solution time: {solutionTime}")
-            # plot_result(result, items, stocks, f"output_{'exact' if isExact else 'heuristic'}_{i}.png")
+            plot_result(result, items, stocks, f'output_{"exact" if isExact else "heuristic"}_{i}.png')
         # Append results to JSON file
         output_data = {
             'items_size': items_size,
@@ -124,7 +124,7 @@ if __name__ == "__main__":
             'fill_percentage': fill_percentage,
             'solution_time': solutionTime
         }
-        with open(f"results_{'exact' if isExact else 'heuristic'}.json", 'a') as json_file:
+        with open(f'results_{"exact" if isExact else "heuristic"}.json', 'a') as json_file:
             json.dump(output_data, json_file)
             json_file.write('\n')
     
