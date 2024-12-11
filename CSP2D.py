@@ -4,6 +4,7 @@ import sys
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
+import json
 
 from algo import exact, heuristic
 
@@ -121,6 +122,7 @@ if __name__ == "__main__":
         output_data = {
             'items_size': items_size,
             'stocks_size': stocks_size,
+            'result': json.dumps(result),
             'fill_percentage': fill_percentage,
             'solution_time': solutionTime
         }
