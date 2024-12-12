@@ -47,9 +47,9 @@ if __name__ == "__main__":
             items, stocks = generate_test_case(items_size, stocks_size, 50, 100, 50, 100, mode)
             if least_space(items) <= least_space(stocks):
                 break
-        print(f"Items has {items_size} elements: {items}")
-        print(f"Stocks has {stocks_size} elements: {stocks}")
-        print(f"Variable count: {variableCount(items_size, stocks_size)}")
+        # print(f"Items has {items_size} elements: {items}")
+        # print(f"Stocks has {stocks_size} elements: {stocks}")
+        # print(f"Variable count: {variableCount(items_size, stocks_size)}")
         # Append results to JSON file
         output_data = {
             'items': items,
@@ -57,7 +57,7 @@ if __name__ == "__main__":
             'variable_count': variableCount(items_size, stocks_size)
         }
         testcases.append(output_data)
-    if not os.path.exists(f'testcase/testcase{"_fixed" if mode else ""}_{variable_count}'):
-        os.makedirs(f'testcase/testcase{"_fixed" if mode else ""}_{variable_count}')
-    with open(f'testcase/testcase{"_fixed" if mode else ""}_{variable_count}/testcase.json', 'w') as json_file:
+    if not os.path.exists(f'heuristic_benchmark/testcase{"_fixed" if mode else ""}_{variable_count}'):
+        os.makedirs(f'heuristic_benchmark/testcase{"_fixed" if mode else ""}_{variable_count}')
+    with open(f'heuristic_benchmark/testcase{"_fixed" if mode else ""}_{variable_count}/testcase.json', 'w') as json_file:
         json.dump(testcases, json_file)

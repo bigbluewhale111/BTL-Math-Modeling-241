@@ -4,7 +4,7 @@ import sys
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
-
+import tqdm
 from algo import exact, heuristic
 
 least_space = lambda rectangles: sum([rect[0] * rect[1] for rect in rectangles])
@@ -72,7 +72,7 @@ if __name__ == "__main__":
         print("Usage: python testCSP_exact_pulp.py <testcase_folder> <algo>")
         exit(1)
     testcase_folder = sys.argv[1]
-    testcase_folder = os.path.join('testcase', testcase_folder)
+    testcase_folder = os.path.join('heuristic_benchmark', testcase_folder)
     if not os.path.exists(testcase_folder):
         print("Test case folder not found.")
         exit
@@ -130,20 +130,22 @@ if __name__ == "__main__":
     for i in range(testcaseCount):
         items, stocks = testcases[i]['items'], testcases[i]['stocks']
         items_size, stocks_size = len(items), len(stocks)
-        print(f"Items has {items_size} elements: {items}")
-        print(f"Stocks has {stocks_size} elements: {stocks}")
-        print(f"Variable count: {testcases[i]['variable_count']}")
+        # print(f"Items has {items_size} elements: {items}")
+        # print(f"Stocks has {stocks_size} elements: {stocks}")
+        # print(f"Variable count: {testcases[i]['variable_count']}")
         if isExact:
-            result, fill_percentage, solutionTime = exact.exact_2d_csp(items, stocks, timeout=1200, threads=64, verbose=True)
+            result, fill_percentage, solutionTime = exact.exact_2d_csp(items, stocks, timeout=1200, threads=32, verbose=True)
         else:
             result, fill_percentage, solutionTime = heuristic.heuristic_2d_csp(items, stocks, heuristic_type_idx=heuristic_type, sort_mode_idx=sort_mode, verbose=True)
         if result is None:
             print("No solution found.")
-        else:
-            print(result)
-            print(f"Fill percentage: {fill_percentage}")
-            print(f"Solution time: {solutionTime}")
-            plot_result(result, items, stocks, f'output_{"exact" if isExact else ("heuristic_" + sys.argv[3] + "_" + sys.argv[4])}_{i}.png')
+        # else:
+        #     print(result)
+        #     print(f"Fill percentage: {fill_percentage}")
+        #     print(f"Solution time: {solutionTime}")
+        #     plot_result(result, items, stocks, f'output_{"exact" if isExact else ("heuristic_" + sys.argv[3] + "_" + sys.argv[4])}_{i}.png')
+        #####
+        #no verbose
         # Append results to JSON file
         output_data = {
             'items_size': items_size,
