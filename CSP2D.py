@@ -4,9 +4,8 @@ import sys
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
-import json
-
-from algo import exact, heuristic, heuristic_benchmark
+import tqdm
+from algo import exact, heuristic
 
 least_space = lambda rectangles: sum([rect[0] * rect[1] for rect in rectangles])
 
@@ -69,11 +68,11 @@ def plot_result(result, rectangles, sheets, output_filename='output.png'):
     plt.close()
 
 if __name__ == "__main__":
-    if len(sys.argv) != 3:
-        print("Usage: python CSP2D.py <testcase_folder> <algo>")
+    if len(sys.argv) < 3:
+        print("Usage: python testCSP_exact_pulp.py <testcase_folder> <algo>")
         exit(1)
     testcase_folder = sys.argv[1]
-    testcase_folder = os.path.join('testcase', testcase_folder)
+    testcase_folder = os.path.join('heuristic_benchmark', testcase_folder)
     if not os.path.exists(testcase_folder):
         print("Test case folder not found.")
         exit
@@ -90,28 +89,40 @@ if __name__ == "__main__":
         print("No test cases found.")
         exit(1)
     isExact = None
-    isbenchmark = False
     if sys.argv[2] == 'exact':
         isExact = True
     elif sys.argv[2] == 'heuristic':
+        if len(sys.argv) != 5:
+            print("Usage: python testCSP_exact_pulp.py <testcase_folder> heuristic <heuristic_type> <sort_mode>")
+            exit(1)
         isExact = False
-    elif sys.argv[2] == 'heuristic_benchmark':
-        isbenchmark = True
+        match sys.argv[3]:
+            case 'BAF':
+                heuristic_type = 0
+            case 'BSSF':
+                heuristic_type = 1
+            case 'BL':
+                heuristic_type = 2
+            case 'BLSF':
+                heuristic_type = 3
+            case _:
+                print("Invalid heuristic type.")
+                exit(1)
+        match sys.argv[4]:
+            case 'FF':
+                sort_mode = 0
+            case 'FT':
+                sort_mode = 1
+            case 'TF':
+                sort_mode = 2
+            case 'TT':
+                sort_mode = 3
+            case _:
+                print("Invalid sort mode.")
+                exit(1)
     else:
         print("Invalid algorithm.")
         exit(1)
-    if isbenchmark:
-        if not os.path.exists(f'heuristic_benchmark_output'):
-            os.makedirs(f'heuristic_benchmark_output')
-        os.chdir(f'heuristic_benchmark_output')
-        testcaseCount = len(testcases)
-        for i in range(testcaseCount):
-            items, stocks = testcases[i]['items'], testcases[i]['stocks']
-            items_size, stocks_size = len(items), len(stocks)
-            output_data = heuristic_benchmark.heuristic_benchmark(items, stocks)
-            with open('results_heuristic_benchmark.json', 'a') as json_file:
-                json.dump(output_data, json_file)
-        exit(0)
     if not os.path.exists(f'{"exact" if isExact else "heuristic"}_output'):
         os.makedirs(f'{"exact" if isExact else "heuristic"}_output')
     os.chdir(f'{"exact" if isExact else "heuristic"}_output')
@@ -119,29 +130,30 @@ if __name__ == "__main__":
     for i in range(testcaseCount):
         items, stocks = testcases[i]['items'], testcases[i]['stocks']
         items_size, stocks_size = len(items), len(stocks)
-        print(f"Items has {items_size} elements: {items}")
-        print(f"Stocks has {stocks_size} elements: {stocks}")
-        print(f"Variable count: {testcases[i]['variable_count']}")
+        # print(f"Items has {items_size} elements: {items}")
+        # print(f"Stocks has {stocks_size} elements: {stocks}")
+        # print(f"Variable count: {testcases[i]['variable_count']}")
         if isExact:
             result, fill_percentage, solutionTime = exact.exact_2d_csp(items, stocks, timeout=1200, threads=32, verbose=True)
         else:
-            result, fill_percentage, solutionTime = heuristic.heuristic_2d_csp(items, stocks, verbose=True)
+            result, fill_percentage, solutionTime = heuristic.heuristic_2d_csp(items, stocks, heuristic_type_idx=heuristic_type, sort_mode_idx=sort_mode, verbose=True)
         if result is None:
             print("No solution found.")
-        else:
-            print(result)
-            print(f"Fill percentage: {fill_percentage}")
-            print(f"Solution time: {solutionTime}")
-            plot_result(result, items, stocks, f'output_{"exact" if isExact else "heuristic"}_{i}.png')
+        # else:
+        #     print(result)
+        #     print(f"Fill percentage: {fill_percentage}")
+        #     print(f"Solution time: {solutionTime}")
+        #     plot_result(result, items, stocks, f'output_{"exact" if isExact else ("heuristic_" + sys.argv[3] + "_" + sys.argv[4])}_{i}.png')
+        #####
+        #no verbose
         # Append results to JSON file
         output_data = {
             'items_size': items_size,
             'stocks_size': stocks_size,
-            'result': json.dumps(result),
             'fill_percentage': fill_percentage,
             'solution_time': solutionTime
         }
-        with open(f'results_{"exact" if isExact else "heuristic"}.json', 'a') as json_file:
+        with open(f'results_{"exact" if isExact else ("heuristic_" + sys.argv[3] + "_" + sys.argv[4])}.json', 'a') as json_file:
             json.dump(output_data, json_file)
             json_file.write('\n')
     

@@ -1,5 +1,4 @@
-__all__ = ["exact", "heuristic", "heuristic_benchmark"]
+__all__ = ["exact", "heuristic"]
 
 from . import exact
 from . import heuristic
-from . import heuristic_benchmark
