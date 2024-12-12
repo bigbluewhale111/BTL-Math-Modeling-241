@@ -1,5 +1,5 @@
 import time
-
+from abc import ABC, abstractmethod
 least_space = lambda rectangles: sum([rect[0] * rect[1] for rect in rectangles])
 
 class Rectangle:
@@ -13,8 +13,7 @@ class Rectangle:
         self.y = None
         self.rotated = False
         self.bin_index = None  # The index of the bin where the rectangle is placed
-
-class MaxRects_BSSF:
+class MaxRects(ABC):
     def __init__(self, width, height):
         self.bin_width = width
         self.bin_height = height
@@ -118,20 +117,17 @@ class MaxRects_BSSF:
                 j += 1
             i += 1
 
-    def score_rectangle_bssf(self, width, height, free_rect):
-        leftover_h = abs(free_rect['width'] - width)
-        leftover_v = abs(free_rect['height'] - height)
-        short_side_fit = min(leftover_h, leftover_v)
-        long_side_fit = max(leftover_h, leftover_v)
-        return (short_side_fit, long_side_fit)
+    @abstractmethod
+    def score(self, original_width, original_height, free_rect):
+        pass
 
-    def find_position_for_new_node_bssf(self, rect):
+    def find_pos(self, rect):
         best_score = (float('inf'), float('inf'))
         best_node = None
         for free_rect in self.free_rectangles:
-            # Try without rotation
+            # No rotation fit
             if rect.original_width <= free_rect['width'] and rect.original_height <= free_rect['height']:
-                score = self.score_rectangle_bssf(rect.original_width, rect.original_height, free_rect)
+                score = self.score(rect.original_width, rect.original_height, free_rect)
                 if score < best_score:
                     best_node = {
                         'x': free_rect['x'],
@@ -141,9 +137,9 @@ class MaxRects_BSSF:
                         'rotated': False
                     }
                     best_score = score
-            # Try with rotation
+            # Rotated fit
             if rect.original_height <= free_rect['width'] and rect.original_width <= free_rect['height']:
-                score = self.score_rectangle_bssf(rect.original_height, rect.original_width, free_rect)
+                score = self.score(rect.original_height, rect.original_width, free_rect)
                 if score < best_score:
                     best_node = {
                         'x': free_rect['x'],
@@ -156,33 +152,71 @@ class MaxRects_BSSF:
         return best_node
 
     def insert(self, rect):
-        best_node = self.find_position_for_new_node_bssf(rect)
+        best_node = self.find_pos(rect)
         if best_node:
             self.place_rectangle(rect, best_node)
             return True
         else:
             return False
 
-def pack_rectangles(rectangles, bins, verbose=False):
+class MaxRects_BSSF(MaxRects):
+    def score(self, width, height, free_rect):
+        leftover_h = abs(free_rect['width'] - width)
+        leftover_v = abs(free_rect['height'] - height)
+        short_side_fit = min(leftover_h, leftover_v)
+        long_side_fit = max(leftover_h, leftover_v)
+        return (short_side_fit, long_side_fit)
+
+class MaxRects_BAF(MaxRects):
+    def score(self, width, height, free_rect):
+        free_area = free_rect['width'] * free_rect['height']
+        rect_area = width * height
+        area_fit = free_area - rect_area
+        leftover_h = abs(free_rect['width'] - width)
+        leftover_v = abs(free_rect['height'] - height)
+        short_side_fit = min(leftover_h, leftover_v)
+        return (area_fit, short_side_fit)
+
+class MaxRects_BL(MaxRects):
+    def score(self, width, height, free_rect):
+        return (free_rect[y], free_rect[x])
+
+class MaxRects_BLSF(MaxRects):
+    def score(self, width, height, free_rect):
+        leftover_h = abs(free_rect['width'] - width)
+        leftover_v = abs(free_rect['height'] - height)
+        long_side_fit = max(leftover_h, leftover_v)
+        short_side_fit = min(leftover_h, leftover_v)
+        return (long_side_fit, short_side_fit)
+
+mr_vars = [MaxRects_BAF, MaxRects_BSSF, MaxRects_BL, MaxRects_BLSF]
+sort_modes = [(False, False), (False, True), (True, False), (True, True)]
+
+def pack_rectangles(rectangles, bins, heuristic_type_idx=0, sort_mode_idx=0, verbose=False):
     bin_packs = []
     unplaced_rectangles = rectangles.copy()
-
+    sort_mode = sort_modes[sort_mode_idx]
     # Sort rectangles in descending order of area (larger rectangles first)
-    rectangles_sorted = sorted(unplaced_rectangles, key=lambda r: r.width * r.height, reverse=True)
-
+    if sort_mode[0]:
+        rectangles_sorted = sorted(unplaced_rectangles, key=lambda r: r.width * r.height, reverse=True)
+    else:
+        rectangles_sorted = sorted(unplaced_rectangles, key=lambda r: r.width * r.height)
     # Include original indices when sorting bins
     bins_with_indices = [(w, h, idx) for idx, (w, h) in enumerate(bins)]
     # Sort bins by area in ascending order (smallest bins first)
-    bins_sorted = sorted(bins_with_indices, key=lambda b: b[0]*b[1])
+    if sort_mode[1]:
+        bins_sorted = sorted(bins_with_indices, key=lambda b: b[0] * b[1], reverse=True)
+    else:
+        bins_sorted = sorted(bins_with_indices, key=lambda b: b[0]*b[1])
 
     for rect in rectangles_sorted:
         placed = False
 
         # First, try to place the rectangle into existing bin packs (used bins)
         # Sort existing bin packs by their bin area (ascending)
-        existing_bin_packs = sorted(bin_packs, key=lambda bp: bins[bp[0]][0] * bins[bp[0]][1])
+        # existing_bin_packs = sorted(bin_packs, key=lambda bp: bins[bp[0]][0] * bins[bp[0]][1])
 
-        for bin_index, bin_pack in existing_bin_packs:
+        for bin_index, bin_pack in bin_packs:
             # Try to insert the rectangle into the existing bin pack
             if bin_pack.insert(rect):
                 rect.bin_index = bin_index  # Use existing bin index
@@ -203,7 +237,7 @@ def pack_rectangles(rectangles, bins, verbose=False):
                     continue  # Try the next bin
 
                 # Create a new bin pack for this bin
-                bin_pack = MaxRects_BSSF(bin_width, bin_height)
+                bin_pack = mr_vars[heuristic_type_idx](bin_width, bin_height)
                 if bin_pack.insert(rect):
                     bin_packs.append((bin_original_index, bin_pack))
                     rect.bin_index = bin_original_index  # Use original bin index
@@ -234,14 +268,14 @@ def pack_rectangles(rectangles, bins, verbose=False):
         print("All products have been successfully packed.")
     return bin_packs
 
-def heuristic_2d_csp(given_rectangles, sheets, verbose=True):
+def heuristic_2d_csp(given_rectangles, sheets, heuristic_type_idx=0, sort_mode_idx=0, verbose=False):
     rectangles = []
     rid = 0
     for idx, rect in enumerate(given_rectangles):
         rectangles.append(Rectangle(rect[0], rect[1], idx))
     # Pack rectangles
     start_time = time.perf_counter()
-    bin_packs = pack_rectangles(rectangles, sheets, verbose)
+    bin_packs = pack_rectangles(rectangles, sheets, heuristic_type_idx, sort_mode_idx, verbose)
     end_time = time.perf_counter()
     if bin_packs is None:
         return None, None, None
