@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 import json
 
-from algo import exact, heuristic
+from algo import exact, heuristic, heuristic_benchmark
 
 least_space = lambda rectangles: sum([rect[0] * rect[1] for rect in rectangles])
 
@@ -70,7 +70,7 @@ def plot_result(result, rectangles, sheets, output_filename='output.png'):
 
 if __name__ == "__main__":
     if len(sys.argv) != 3:
-        print("Usage: python testCSP_exact_pulp.py <testcase_folder> <algo>")
+        print("Usage: python CSP2D.py <testcase_folder> <algo>")
         exit(1)
     testcase_folder = sys.argv[1]
     testcase_folder = os.path.join('testcase', testcase_folder)
@@ -90,13 +90,28 @@ if __name__ == "__main__":
         print("No test cases found.")
         exit(1)
     isExact = None
+    isbenchmark = False
     if sys.argv[2] == 'exact':
         isExact = True
     elif sys.argv[2] == 'heuristic':
         isExact = False
+    elif sys.argv[2] == 'heuristic_benchmark':
+        isbenchmark = True
     else:
         print("Invalid algorithm.")
         exit(1)
+    if isbenchmark:
+        if not os.path.exists(f'heuristic_benchmark_output'):
+            os.makedirs(f'heuristic_benchmark_output')
+        os.chdir(f'heuristic_benchmark_output')
+        testcaseCount = len(testcases)
+        for i in range(testcaseCount):
+            items, stocks = testcases[i]['items'], testcases[i]['stocks']
+            items_size, stocks_size = len(items), len(stocks)
+            output_data = heuristic_benchmark.heuristic_benchmark(items, stocks)
+            with open('results_heuristic_benchmark.json', 'a') as json_file:
+                json.dump(output_data, json_file)
+        exit(0)
     if not os.path.exists(f'{"exact" if isExact else "heuristic"}_output'):
         os.makedirs(f'{"exact" if isExact else "heuristic"}_output')
     os.chdir(f'{"exact" if isExact else "heuristic"}_output')
@@ -108,7 +123,7 @@ if __name__ == "__main__":
         print(f"Stocks has {stocks_size} elements: {stocks}")
         print(f"Variable count: {testcases[i]['variable_count']}")
         if isExact:
-            result, fill_percentage, solutionTime = exact.exact_2d_csp(items, stocks, timeout=1200, threads=64, verbose=True)
+            result, fill_percentage, solutionTime = exact.exact_2d_csp(items, stocks, timeout=1200, threads=32, verbose=True)
         else:
             result, fill_percentage, solutionTime = heuristic.heuristic_2d_csp(items, stocks, verbose=True)
         if result is None:
